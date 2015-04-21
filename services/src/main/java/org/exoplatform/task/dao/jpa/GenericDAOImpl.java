@@ -42,6 +42,7 @@ public class GenericDAOImpl<E, ID extends Serializable> implements GenericDAO<E,
   protected Class entityClass;
 
   protected EntityManagerFactory entityManagerFactory;
+
   protected static EntityManager entityManager;
 
   public GenericDAOImpl() {
@@ -58,15 +59,15 @@ public class GenericDAOImpl<E, ID extends Serializable> implements GenericDAO<E,
   //
   // *****************************
 
-  private void createEntityManager() {
-    if(entityManager == null) {
+  private void initEntityManager() {
+    if (entityManager == null) {
       entityManager = entityManagerFactory.createEntityManager();
     }
   }
 
   @Override
   public void beginTransaction() {
-    createEntityManager();
+    initEntityManager();
     entityManager.getTransaction().begin();
   }
 
@@ -99,7 +100,7 @@ public class GenericDAOImpl<E, ID extends Serializable> implements GenericDAO<E,
 
   @Override
   public void joinTransaction() {
-    createEntityManager();
+    initEntityManager();
     entityManager.joinTransaction();
   }
 

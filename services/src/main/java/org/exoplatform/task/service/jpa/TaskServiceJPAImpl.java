@@ -18,6 +18,7 @@ package org.exoplatform.task.service.jpa;
 
 import org.exoplatform.task.dao.TaskDAO;
 import org.exoplatform.task.domain.Task;
+import org.exoplatform.task.factory.ExoEntityManagerFactory;
 import org.exoplatform.task.service.GroupByService;
 import org.exoplatform.task.service.TaskService;
 import org.exoplatform.task.service.impl.GroupByProject;
@@ -26,6 +27,9 @@ import org.exoplatform.task.service.impl.GroupByTag;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,6 +47,8 @@ public class TaskServiceJPAImpl implements TaskService {
   private static final Logger LOG = Logger.getLogger("TaskServiceJPATestImpl");
   private final List<GroupByService> groupByServices;
 
+  private EntityManager entityManager;
+  
   @Inject
   private TaskDAO taskDAO;
 
@@ -97,6 +103,15 @@ public class TaskServiceJPAImpl implements TaskService {
   @Override
   public List<GroupByService> getGroupByServices() {
     return Collections.unmodifiableList(this.groupByServices);
+  }
+
+  public void startRequest() {
+    EntityManagerFactory entityManagerFactory = ExoEntityManagerFactory.getEntityManagerFactory();
+    entityManager = entityManagerFactory.createEntityManager();
+  }
+
+  public void endRequest() {
+    entityManager.close();
   }
 }
 
