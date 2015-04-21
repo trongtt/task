@@ -54,9 +54,6 @@ public class TaskServiceJPAImpl extends AbstractTaskService implements TaskServi
 
   private EntityManager entityManager;
   
-  @Inject
-  private TaskHandler taskDAO;
-
   public TaskServiceJPAImpl() {
     pHandler = new ProjectDAOImpl(this);
     tHandler = new TaskDAOImpl(this);
@@ -75,42 +72,32 @@ public class TaskServiceJPAImpl extends AbstractTaskService implements TaskServi
   
   @Override
   public void save(Task task) {
-    taskDAO.beginTransaction();
-    taskDAO.update(task);
-    taskDAO.commitAndCloseTransaction();
+    tHandler.update(task);
   }
 
   //To add in interface
   public void update(Task task) {
-    taskDAO.beginTransaction();
-    Task persistedTask = taskDAO.find(task.getId());
+    Task persistedTask = tHandler.find(task.getId());
     persistedTask.setTitle(task.getTitle());
     //TO DO: add all set methods...
-    taskDAO.update(persistedTask);
-    taskDAO.commitAndCloseTransaction();
+    tHandler.update(persistedTask);
   }
 
   @Override
   public Task findTaskById(long id) {
-    taskDAO.beginTransaction();
-    Task task = taskDAO.find(id);
-    taskDAO.closeTransaction();
+    Task task = tHandler.find(id);
     return task;
   }
 
   @Override
   public List<Task> findAllTask() {
-    taskDAO.beginTransaction();
-    List<Task> tasks = taskDAO.findAll();
-    taskDAO.closeTransaction();
+    List<Task> tasks = tHandler.findAll();
     return tasks;
   }
 
   @Override
   public void remove(Task task) {
-    taskDAO.beginTransaction();
-    taskDAO.delete(task);
-    taskDAO.commitAndCloseTransaction();
+    tHandler.delete(task);
   }
 
   @Override
