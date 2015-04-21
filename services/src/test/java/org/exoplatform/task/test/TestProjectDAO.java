@@ -30,9 +30,12 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import org.exoplatform.task.dao.ProjectHandler;
 import org.exoplatform.task.dao.jpa.ProjectDAOImpl;
 import org.exoplatform.task.domain.Project;
 import org.exoplatform.task.factory.ExoEntityManagerFactory;
+import org.exoplatform.task.service.TaskService;
+import org.exoplatform.task.service.jpa.TaskServiceJPAImpl;
 
 /**
  * @author <a href="trongtt@exoplatform.com">Trong Tran</a>
@@ -40,7 +43,8 @@ import org.exoplatform.task.factory.ExoEntityManagerFactory;
  */
 public class TestProjectDAO {
 
-  private ProjectDAOImpl pDAO;
+  private ProjectHandler pDAO;
+  private TaskServiceJPAImpl taskService;
 
   @BeforeClass
   public static void init() throws SQLException,
@@ -56,15 +60,19 @@ public class TestProjectDAO {
 
   @Before
   public void setup() {
-    pDAO = new ProjectDAOImpl();
-    pDAO.initDAO();
-    pDAO.beginTransaction();
+    taskService = new TaskServiceJPAImpl();
+    pDAO = taskService.getProjectHandler();
+
+    //
+    taskService.startRequest();
   }
 
   @After
   public void tearDown() {
     pDAO.deleteAll();
-    pDAO.closeTransaction();
+
+    //
+    taskService.endRequest();
   }
 
   @Test

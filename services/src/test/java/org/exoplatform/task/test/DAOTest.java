@@ -16,19 +16,28 @@
 */
 package org.exoplatform.task.test;
 
-import liquibase.exception.LiquibaseException;
-import org.exoplatform.task.dao.jpa.ProjectDAOImpl;
-import org.exoplatform.task.dao.jpa.StatusDAOImpl;
-import org.exoplatform.task.dao.jpa.TaskDAOImpl;
-import org.exoplatform.task.domain.Task;
-import org.exoplatform.task.factory.ExoEntityManagerFactory;
-import org.junit.*;
-
-import javax.persistence.Persistence;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+
+import javax.persistence.Persistence;
+
+import liquibase.exception.LiquibaseException;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import org.exoplatform.task.dao.ProjectHandler;
+import org.exoplatform.task.dao.StatusHandler;
+import org.exoplatform.task.dao.TaskHandler;
+import org.exoplatform.task.domain.Task;
+import org.exoplatform.task.factory.ExoEntityManagerFactory;
+import org.exoplatform.task.service.jpa.TaskServiceJPAImpl;
 
 /**
  * Created by The eXo Platform SAS
@@ -38,9 +47,10 @@ import java.util.List;
  */
 public class DAOTest {
 
-  private TaskDAOImpl taskDAO;
-  private ProjectDAOImpl projectDAO;
-  private StatusDAOImpl statusDAO;
+  private TaskHandler taskDAO;
+  private ProjectHandler projectDAO;
+  private StatusHandler statusDAO;
+  private TaskServiceJPAImpl taskService;
 
   @BeforeClass
   public static void createTable() throws SQLException,
@@ -51,20 +61,24 @@ public class DAOTest {
 
   @Before
   public void initDAOs() {
-    taskDAO = new TaskDAOImpl();
-    projectDAO = new ProjectDAOImpl();
-    statusDAO = new StatusDAOImpl();
+    taskService = new TaskServiceJPAImpl();
+
+    taskDAO = taskService.getTaskHandler();
+    projectDAO = taskService.getProjectHandler();
+    statusDAO = taskService.getStatusHandler();
+
+    //
+    taskService.startRequest();
   }
 
   @After
   public void cleanTables() {
-    taskDAO.beginTransaction();
-    projectDAO.joinTransaction();
-    statusDAO.joinTransaction();
     taskDAO.deleteAll();
     statusDAO.deleteAll();
     projectDAO.deleteAll();
-    taskDAO.commitAndCloseTransaction();
+
+    //
+    taskService.endRequest();
   }
 
   @AfterClass
@@ -79,23 +93,17 @@ public class DAOTest {
 
   @Test
   public void testAddNewTask() {
-    taskDAO.beginTransaction();
     List<Task> tasks = taskDAO.findAll();
     Assert.assertEquals(0, tasks.size());
-    taskDAO.closeTransaction();
-    //Add a new task
-    taskDAO.beginTransaction();
+
     Task task = newDefaultSimpleTask();
     HashSet<String> tags = new HashSet<String>();
     tags.add("my label");
     task.setTags(tags);
     taskDAO.create(task);
-    taskDAO.commitAndCloseTransaction();
-    //Get all tasks
-    taskDAO.beginTransaction();
+
     tasks = taskDAO.findAll();
     Assert.assertEquals(1, tasks.size());
-    taskDAO.closeTransaction();
   }
 
   private Task newDefaultSimpleTask() {
@@ -106,15 +114,5 @@ public class DAOTest {
     task.setCreatedTime(new Date());
     return task;
   }
-
-  private Task newSpecificSimpleTask(String title, String assignee, String creator) {
-    Task task = new Task();
-    task.setTitle(title);
-    task.setAssignee(assignee);
-    task.setCreatedBy(creator);
-    task.setCreatedTime(new Date());
-    return task;
-  }
-
 }
 

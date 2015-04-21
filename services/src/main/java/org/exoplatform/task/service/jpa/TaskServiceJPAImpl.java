@@ -16,11 +16,16 @@
 */
 package org.exoplatform.task.service.jpa;
 
-import org.exoplatform.task.dao.TaskDAO;
+import org.exoplatform.task.dao.TaskHandler;
+import org.exoplatform.task.dao.jpa.CommentDAOImpl;
+import org.exoplatform.task.dao.jpa.ProjectDAOImpl;
+import org.exoplatform.task.dao.jpa.StatusDAOImpl;
+import org.exoplatform.task.dao.jpa.TaskDAOImpl;
 import org.exoplatform.task.domain.Task;
 import org.exoplatform.task.factory.ExoEntityManagerFactory;
 import org.exoplatform.task.service.GroupByService;
 import org.exoplatform.task.service.TaskService;
+import org.exoplatform.task.service.impl.AbstractTaskService;
 import org.exoplatform.task.service.impl.GroupByProject;
 import org.exoplatform.task.service.impl.GroupByStatus;
 import org.exoplatform.task.service.impl.GroupByTag;
@@ -42,7 +47,7 @@ import java.util.logging.Logger;
  * 4/8/15
  */
 @Singleton
-public class TaskServiceJPAImpl implements TaskService {
+public class TaskServiceJPAImpl extends AbstractTaskService implements TaskService {
 
   private static final Logger LOG = Logger.getLogger("TaskServiceJPATestImpl");
   private final List<GroupByService> groupByServices;
@@ -50,16 +55,24 @@ public class TaskServiceJPAImpl implements TaskService {
   private EntityManager entityManager;
   
   @Inject
-  private TaskDAO taskDAO;
+  private TaskHandler taskDAO;
 
-  public TaskServiceJPAImpl(TaskDAO taskDAO) {
-    this.taskDAO = taskDAO;
+  public TaskServiceJPAImpl() {
+    pHandler = new ProjectDAOImpl(this);
+    tHandler = new TaskDAOImpl(this);
+    cHandler = new CommentDAOImpl(this);
+    sHandler = new StatusDAOImpl(this);
+    
     this.groupByServices = new ArrayList<GroupByService>();
     this.groupByServices.add(new GroupByStatus(this));
     this.groupByServices.add(new GroupByProject(this));
     this.groupByServices.add(new GroupByTag(this));
   }
 
+  public EntityManager getEntityManager() {
+    return entityManager;
+  }
+  
   @Override
   public void save(Task task) {
     taskDAO.beginTransaction();
@@ -108,9 +121,11 @@ public class TaskServiceJPAImpl implements TaskService {
   public void startRequest() {
     EntityManagerFactory entityManagerFactory = ExoEntityManagerFactory.getEntityManagerFactory();
     entityManager = entityManagerFactory.createEntityManager();
+    entityManager.getTransaction().begin();
   }
 
   public void endRequest() {
+    entityManager.getTransaction().commit();
     entityManager.close();
   }
 }
