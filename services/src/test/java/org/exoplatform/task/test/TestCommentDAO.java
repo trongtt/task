@@ -38,8 +38,6 @@ import org.junit.Test;
 
 import org.exoplatform.task.dao.CommentHandler;
 import org.exoplatform.task.dao.TaskHandler;
-import org.exoplatform.task.dao.jpa.CommentDAOImpl;
-import org.exoplatform.task.dao.jpa.TaskDAOImpl;
 import org.exoplatform.task.domain.Comment;
 import org.exoplatform.task.domain.Task;
 import org.exoplatform.task.factory.ExoEntityManagerFactory;

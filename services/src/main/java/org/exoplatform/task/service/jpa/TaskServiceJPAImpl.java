@@ -16,7 +16,15 @@
 */
 package org.exoplatform.task.service.jpa;
 
-import org.exoplatform.task.dao.TaskHandler;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.logging.Logger;
+
+import javax.inject.Singleton;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+
 import org.exoplatform.task.dao.jpa.CommentDAOImpl;
 import org.exoplatform.task.dao.jpa.ProjectDAOImpl;
 import org.exoplatform.task.dao.jpa.StatusDAOImpl;
@@ -29,16 +37,6 @@ import org.exoplatform.task.service.impl.AbstractTaskService;
 import org.exoplatform.task.service.impl.GroupByProject;
 import org.exoplatform.task.service.impl.GroupByStatus;
 import org.exoplatform.task.service.impl.GroupByTag;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Created by The eXo Platform SAS

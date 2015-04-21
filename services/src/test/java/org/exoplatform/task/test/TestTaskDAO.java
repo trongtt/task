@@ -21,28 +21,32 @@ import java.util.List;
 
 import javax.persistence.Persistence;
 
-import junit.framework.Assert;
 import liquibase.exception.LiquibaseException;
 
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import org.exoplatform.task.dao.ProjectHandler;
-import org.exoplatform.task.domain.Project;
+import org.exoplatform.task.dao.TaskHandler;
+import org.exoplatform.task.domain.Priority;
+import org.exoplatform.task.domain.Task;
 import org.exoplatform.task.factory.ExoEntityManagerFactory;
+import org.exoplatform.task.service.TaskParser;
+import org.exoplatform.task.service.impl.TaskParserImpl;
 import org.exoplatform.task.service.jpa.TaskServiceJPAImpl;
 
 /**
  * @author <a href="trongtt@exoplatform.com">Trong Tran</a>
  * @version $Revision$
  */
-public class TestProjectDAO {
+public class TestTaskDAO {
 
-  private ProjectHandler pDAO;
+  private TaskHandler tDAO;
   private TaskServiceJPAImpl taskService;
+  private TaskParser parser = new TaskParserImpl();
 
   @BeforeClass
   public static void init() throws SQLException,
@@ -59,7 +63,7 @@ public class TestProjectDAO {
   @Before
   public void setup() {
     taskService = new TaskServiceJPAImpl();
-    pDAO = taskService.getProjectHandler();
+    tDAO = taskService.getTaskHandler();
 
     //
     taskService.startRequest();
@@ -67,31 +71,29 @@ public class TestProjectDAO {
 
   @After
   public void tearDown() {
-    pDAO.deleteAll();
-
     //
     taskService.endRequest();
   }
 
   @Test
-  public void testProjectCreation() {
-    List<Project> all;
+  public void testTaskCreation() {
+    Task task = parser.parse("Testing task creation");
+    tDAO.create(task);
 
-    Project p1 = new Project("Test project 1", null, null, null);
-    pDAO.create(p1);
-    all = pDAO.findAll();
-    Assert.assertEquals(1, all.size());
-    Assert.assertEquals("Test project 1", p1.getName());
+    List<Task> list = tDAO.findAll();
+    Assert.assertEquals(1, list.size());
 
-    all = pDAO.findAll();
-    Assert.assertEquals(1, all.size());
-    Assert.assertEquals("Test project 1", p1.getName());
-    Project p2 = new Project("Test project 2", null, null, null);
-    pDAO.create(p2);
+    //
+    task = parser.parse("There is an important meeting tomorrow !high");
+    tDAO.create(task);
+    list = tDAO.findAll();
+    Assert.assertEquals(2, list.size());
 
-    all = pDAO.findAll();
-    Assert.assertEquals(2, all.size());
-    Assert.assertEquals(p1.getId() + 1, p2.getId());
+    //
+    task = tDAO.find(task.getId());
+    Assert.assertNotNull(task);
+    Assert.assertEquals("There is an important meeting tomorrow", task.getTitle());
+    Assert.assertEquals(Priority.HIGH, task.getPriority());
   }
 }
 
