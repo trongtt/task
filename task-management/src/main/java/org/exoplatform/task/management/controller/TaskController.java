@@ -22,6 +22,10 @@ package org.exoplatform.task.management.controller;
 import juzu.*;
 import juzu.impl.common.Tools;
 import juzu.request.SecurityContext;
+import org.exoplatform.commons.api.settings.SettingService;
+import org.exoplatform.commons.api.settings.SettingValue;
+import org.exoplatform.commons.api.settings.data.Context;
+import org.exoplatform.commons.api.settings.data.Scope;
 import org.exoplatform.commons.juzu.ajax.Ajax;
 import org.exoplatform.commons.utils.HTMLEntityEncoder;
 import org.exoplatform.commons.utils.ListAccess;
@@ -39,6 +43,7 @@ import org.exoplatform.task.management.model.Paging;
 import org.exoplatform.task.management.model.TaskFilterData;
 import org.exoplatform.task.management.model.TaskFilterData.Filter;
 import org.exoplatform.task.management.model.TaskFilterData.FilterKey;
+import org.exoplatform.task.management.model.ViewState;
 import org.exoplatform.task.management.model.ViewType;
 import org.exoplatform.task.management.service.ViewStateService;
 import org.exoplatform.task.management.util.JsonUtil;
@@ -86,6 +91,9 @@ public class TaskController extends AbstractController {
 
   @Inject
   ResourceBundle bundle;
+
+  @Inject
+  SettingService settingService;
 
   @Inject
   @Path("detail.gtmpl")
@@ -607,8 +615,7 @@ public class TaskController extends AbstractController {
 
       taskQuery.setIsIncomingOf(currentUser);
       taskQuery.setOrderBy(Arrays.asList(order));
-    }
-    else if (projectId == ProjectUtil.TODO_PROJECT_ID) {
+    } else if (projectId == ProjectUtil.TODO_PROJECT_ID) {
       defGroupBys = TaskUtil.resolve(Arrays.asList(TaskUtil.NONE, TaskUtil.PROJECT, TaskUtil.LABEL, TaskUtil.DUEDATE), bundle);
       defOrders = TaskUtil.resolve(Arrays.asList(TaskUtil.TITLE, TaskUtil.STATUS, TaskUtil.DUEDATE, TaskUtil.PRIORITY, TaskUtil.RANK), bundle);
 

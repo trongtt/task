@@ -95,6 +95,7 @@ define('taFilter', ['SHARED/jquery', 'SHARED/suggester'], function($) {
       submitFilter: function(reset, callback) {
         var $content = taApp.getUI().$centerPanelContent;
         var data = taFilter.getFilterData(reset);
+        console.log(data);
         $content.data('filterData', data);
         $content.jzLoad('TaskController.listTasks()', data, callback);
       },

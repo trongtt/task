@@ -23,7 +23,11 @@ import org.exoplatform.commons.api.settings.SettingService;
 import org.exoplatform.commons.api.settings.SettingValue;
 import org.exoplatform.commons.api.settings.data.Context;
 import org.exoplatform.commons.api.settings.data.Scope;
+import org.exoplatform.task.management.model.ViewState;
 import org.exoplatform.task.management.model.ViewType;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import javax.inject.Inject;
 
@@ -53,6 +57,21 @@ public class ViewStateService {
       SettingValue<String> value = new SettingValue<>(viewType.name());
       settingService.set(Context.USER.id(username), TASK_APP_SCOPE, buildViewTypeKey(projectId), value);
     }
+  }
+
+  public ViewState getViewState(String viewStateId) {
+    SettingValue<String> value = (SettingValue<String>) settingService.get(Context.USER, TASK_APP_SCOPE, viewStateId);
+    JSONParser parser = new JSONParser();
+    try {
+      JSONObject json = (JSONObject)parser.parse(value.getValue());
+      return new ViewState(json);
+    } catch (ParseException e) {
+      return null;
+    }
+  }
+
+  public void saveViewState(ViewState viewState) {
+    settingService.set(Context.USER, TASK_APP_SCOPE, viewState.getId(), SettingValue.create(viewState.toString()));
   }
 
   private String buildViewTypeKey(long projectId) {

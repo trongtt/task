@@ -80,7 +80,9 @@ import org.exoplatform.task.util.TaskUtil.DUE;
 public class TaskManagement {
 
   private static final Log LOG = ExoLogger.getExoLogger(TaskManagement.class);
-  
+
+  public static final String TASK_APP_SETTING_SCOPE = "Task";
+
   @Inject
   TaskService taskService;
 
@@ -230,7 +232,6 @@ public class TaskManagement {
 
     FilterKey filterKey = FilterKey.withProject(currProject, null);
     Filter fd = filterData.getFilter(filterKey);
-    ViewType viewType = viewStateService.getViewType(username, currProject);
 
     //
     if (taskId > 0 && taskModel.getTask().isCompleted()) {
@@ -314,6 +315,7 @@ public class TaskManagement {
 
     List<Status> projectStatus = new ArrayList<Status>();
     Map<Long, Integer> numberTasks = new HashMap<Long, Integer>();
+    ViewType viewType = viewStateService.getViewType(username, currProject);
     if (ViewType.BOARD == viewType && currProject > 0) {
       projectStatus = statusService.getStatuses(currProject);
       for(List<Task> list : groupTasks.values()) {
@@ -345,7 +347,7 @@ public class TaskManagement {
         .showCompleted(advanceSearch && showCompleted)
         .advanceSearch(advanceSearch)
         .groupBy(TaskUtil.NONE)
-        .orderBy("createdTime")
+        .orderBy(TaskUtil.CREATED_TIME)
         .filter("")
         .projects(projects)
         .labels(labels)
