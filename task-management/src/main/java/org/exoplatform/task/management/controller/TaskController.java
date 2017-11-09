@@ -496,12 +496,8 @@ public class TaskController extends AbstractController {
   @MimeType.HTML
   public Response listTasks(String space_group_id, Long projectId, Long labelId, String filterLabelIds, String statusId, String dueDate, String priority,
                             String assignee, Boolean showCompleted, String keyword, String groupBy, String orderBy, String filter, String viewType, Integer page, SecurityContext securityContext) throws EntityNotFoundException, UnAuthorizedOperationException {
-
-    FilterKey filterKey = FilterKey.withProject(projectId, filter == null || filter.isEmpty() ? null : DUE.valueOf(filter.toUpperCase()));
-    if (labelId != null && labelId != -1L) {
-      filterKey = FilterKey.withLabel(labelId);
-    }
-    Filter fd = filterData.getFilter(filterKey);
+    ViewState viewState = viewStateService.getViewState(ViewState.buildId(projectId, filter, labelId), true);
+    ViewState.Filter fd = viewState.getFilter();
 
     boolean advanceSearch = fd.isEnabled();
     if (advanceSearch) {
@@ -511,11 +507,12 @@ public class TaskController extends AbstractController {
     Identity currIdentity = ConversationState.getCurrent().getIdentity();
     ViewType vType;
     if (projectId <= 0 || viewType == null || viewType.isEmpty()) {
-      vType = viewStateService.getViewType(securityContext.getRemoteUser(), projectId);
+      vType = viewState.getViewType();
     } else {
       vType = ViewType.getViewType(viewType);
-      viewStateService.saveViewType(securityContext.getRemoteUser(), projectId, vType);
+      viewState.setViewType(vType);
     }
+
     boolean isBoardView = (ViewType.BOARD == vType);
 
     Project project = null;
@@ -661,8 +658,7 @@ public class TaskController extends AbstractController {
       taskQuery.setDueDateTo(filterDate[1]);
       taskQuery.setOrderBy(Arrays.asList(order));
 
-    }
-    else if (projectId >= 0) {
+    } else if (projectId >= 0) {
       if (!advanceSearch) {
         taskQuery.setKeyword(keyword);        
       }
@@ -785,6 +781,9 @@ public class TaskController extends AbstractController {
       q.setCompleted(false);
       incomNum = ListUtil.getSize(taskService.findTasks(q));
     }
+
+    // Save ViewState
+    viewStateService.saveViewState(viewState);
 
     return taskListView
         .with()

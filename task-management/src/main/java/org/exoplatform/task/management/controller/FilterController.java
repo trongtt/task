@@ -42,6 +42,8 @@ import org.exoplatform.task.exception.EntityNotFoundException;
 import org.exoplatform.task.management.model.TaskFilterData;
 import org.exoplatform.task.management.model.TaskFilterData.Filter;
 import org.exoplatform.task.management.model.TaskFilterData.FilterKey;
+import org.exoplatform.task.management.model.ViewState;
+import org.exoplatform.task.management.service.ViewStateService;
 import org.exoplatform.task.service.ProjectService;
 import org.exoplatform.task.service.StatusService;
 import org.exoplatform.task.service.TaskService;
@@ -71,7 +73,10 @@ public class FilterController {
   
   @Inject
   TaskFilterData filterData;
-  
+
+  @Inject
+  ViewStateService viewStateService;
+
   @Inject
   @Path("taskFilter.gtmpl")
   org.exoplatform.task.management.templates.taskFilter taskFilter;
@@ -81,11 +86,12 @@ public class FilterController {
   @MimeType.HTML
   public Response toggleFilter(Long projectId, Long labelId, String filter, SecurityContext securityContext) throws JSONException, EntityNotFoundException {
 
+    ViewState viewState = viewStateService.getViewState(ViewState.buildId(projectId, filter, labelId), true);
     FilterKey filterKey = FilterKey.withProject(projectId, filter == null || filter.isEmpty() ? null : DUE.valueOf(filter.toUpperCase()));
     if (labelId != null && labelId != -1L) {
       filterKey = FilterKey.withLabel(labelId);
     }
-    Filter fd = filterData.getFilter(filterKey);
+    ViewState.Filter fd = viewState.getFilter();
 
     //
     fd.setEnabled(!fd.isEnabled());

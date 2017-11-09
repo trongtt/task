@@ -59,12 +59,19 @@ public class ViewStateService {
     }
   }
 
-  public ViewState getViewState(String viewStateId) {
+  public ViewState getViewState(String viewStateId, boolean created) {
     SettingValue<String> value = (SettingValue<String>) settingService.get(Context.USER, TASK_APP_SCOPE, viewStateId);
-    JSONParser parser = new JSONParser();
     try {
-      JSONObject json = (JSONObject)parser.parse(value.getValue());
-      return new ViewState(json);
+      ViewState state = null;
+      if (value != null) {
+        JSONParser parser = new JSONParser();
+        JSONObject json = (JSONObject)parser.parse(value.getValue());
+        state = new ViewState(json);
+      } else if (created) {
+        state = ViewState.createDefaultViewState();
+      }
+
+      return state;
     } catch (ParseException e) {
       return null;
     }

@@ -150,8 +150,8 @@ public class TaskFilterData implements Serializable {
       }
     }
 
-    public void setShowCompleted(boolean showCompleted) {
-      data.put(FILTER_NAME.SHOW_COMPLETE, showCompleted);
+    public void setShowCompleted(boolean bln) {
+      data.put(FILTER_NAME.SHOW_COMPLETE, bln);
     }
 
     public void updateFilterData(String filterLabelIds,
@@ -161,8 +161,8 @@ public class TaskFilterData implements Serializable {
                                  String assignee,
                                  Boolean showCompleted,
                                  String keyword) {
-      List<Long> searchLabelIds = new LinkedList<Long>();
       if (filterLabelIds != null) {
+        List<Long> searchLabelIds = new LinkedList<Long>();
         for (String id : filterLabelIds.split(",")) {
           if (!(id = id.trim()).isEmpty()) {
             try {
@@ -171,6 +171,7 @@ public class TaskFilterData implements Serializable {
             }
           }
         }
+        this.setLabel(searchLabelIds);
       }
 
       List<String> searchAssignee = new LinkedList<String>();
@@ -184,9 +185,6 @@ public class TaskFilterData implements Serializable {
 
       if (keyword != null) {
         this.setKeyword(keyword);
-      }
-      if (filterLabelIds != null) {
-        this.setLabel(searchLabelIds);
       }
       if (statusId != null) {
         if (statusId.isEmpty()) {
