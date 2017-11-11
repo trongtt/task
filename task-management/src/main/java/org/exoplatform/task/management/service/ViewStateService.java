@@ -66,9 +66,9 @@ public class ViewStateService {
       if (value != null) {
         JSONParser parser = new JSONParser();
         JSONObject json = (JSONObject)parser.parse(value.getValue());
-        state = new ViewState(json);
+        state = new ViewState(viewStateId, json);
       } else if (created) {
-        state = ViewState.createDefaultViewState();
+        state = ViewState.createDefaultViewState(viewStateId);
       }
 
       return state;

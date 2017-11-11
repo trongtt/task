@@ -9,24 +9,36 @@ import java.util.*;
 
 public class ViewState extends JSONObject {
 
+  private String id;
   private Filter filter;
+  private String groupBy;
 
-  public ViewState() {
+  public ViewState(String id) {
+    this.id = id;
     filter = new Filter();
   }
 
-  public ViewState(JSONObject json) {
+  public ViewState(String id, JSONObject json) {
     super(json);
+    this.id = id;
 
-    filter = new Filter((JSONObject) json.get("filter"));
+    filter = new Filter();
   }
 
   public String getId() {
-    return buildId(getProjectId(), getDueDate(), getLabelId());
+    if (id == null) {
+      id = buildId(getProjectId(), getDueDate(), getLabelId());
+    }
+    return id;
   }
 
   public Long getProjectId() {
-    return Long.valueOf(get("projectId").toString());
+    Object projectId = get("projectId");
+    if (projectId != null) {
+      return Long.valueOf(projectId.toString());
+    } else {
+      return null;
+    }
   }
 
   public ViewState setProjectId(Long projectId) {
@@ -35,7 +47,12 @@ public class ViewState extends JSONObject {
   }
 
   public String getDueDate() {
-    return get("filter").toString();
+    Object filter = get("filter");
+    if (filter != null) {
+      return filter.toString();
+    } else {
+      return null;
+    }
   }
 
   public ViewState setDueDate(String dueDate) {
@@ -48,7 +65,12 @@ public class ViewState extends JSONObject {
   }
 
   public Long getLabelId() {
-    return Long.valueOf(get("labelId").toString());
+    Object labelId = get("labelId");
+    if (labelId != null) {
+      return Long.valueOf(labelId.toString());
+    } else {
+      return null;
+    }
   }
 
   public ViewState setLabelId(Long labelId) {
@@ -61,7 +83,11 @@ public class ViewState extends JSONObject {
   }
 
   public ViewType getViewType() {
-    return null;
+    Object viewType = get("viewType");
+    if (viewType != null) {
+      return ViewType.getViewType(viewType.toString());
+    }
+    return ViewType.LIST;
   }
 
   public void setViewType(ViewType viewType) {
@@ -69,7 +95,7 @@ public class ViewState extends JSONObject {
   }
 
   public Filter getFilter() {
-    return new Filter((JSONObject)get("filter"));
+    return filter;
   }
 
   public void setFilter(Filter filter) {
@@ -89,8 +115,34 @@ public class ViewState extends JSONObject {
     return sBuilder.toString();
   }
 
-  public static ViewState createDefaultViewState() {
-    return new ViewState();
+  public static ViewState createDefaultViewState(String id) {
+    return new ViewState(id);
+  }
+
+  public String getOrderBy() {
+    Object orderBy = get("orderBy");
+    if (orderBy != null) {
+      return orderBy.toString();
+    } else {
+      return null;
+    }
+  }
+
+  public void setOrderBy(String orderBy) {
+    put("orderBy", orderBy);
+  }
+
+  public String getGroupBy() {
+    Object orderBy = get("groupBy");
+    if (orderBy != null) {
+      return orderBy.toString();
+    } else {
+      return null;
+    }
+  }
+
+  public void setGroupBy(String groupBy) {
+    put("groupBy", groupBy);
   }
 
   public static class Filter extends JSONObject {
@@ -101,7 +153,12 @@ public class ViewState extends JSONObject {
     }
 
     public boolean isEnabled() {
-      return Boolean.valueOf(get("enabled").toString());
+      Object enabled = get("enabled");
+      if (enabled != null) {
+        return Boolean.valueOf(enabled.toString());
+      } else {
+        return false;
+      }
     }
 
     public void setEnabled(boolean enabled) {
@@ -109,7 +166,12 @@ public class ViewState extends JSONObject {
     }
 
     public String getKeyword() {
-      return get("keyword").toString();
+      Object keyword = get("keyword");
+      if (keyword != null) {
+        return keyword.toString();
+      } else {
+        return "";
+      }
     }
 
     public void setKeyword(String keyword) {
@@ -125,7 +187,12 @@ public class ViewState extends JSONObject {
     }
 
     public Long getStatus() {
-      return Long.valueOf(get("status").toString());
+      Object status = get("status");
+      if (status != null) {
+        return Long.valueOf(get("status").toString());
+      } else {
+        return null;
+      }
     }
 
     public void setStatus(Long statusId) {
@@ -137,7 +204,7 @@ public class ViewState extends JSONObject {
     }
 
     public List<String> getAssignee() {
-      return (JSONArray) get("assignees");
+      return null;
     }
 
     public void setAssignee(List<String> assignees) {
@@ -157,7 +224,12 @@ public class ViewState extends JSONObject {
     }
 
     public Priority getPriority() {
-      return Priority.valueOf(get("priority").toString());
+      Object priority = get("priority");
+      if (priority != null) {
+        return Priority.valueOf(priority.toString());
+      } else {
+        return null;
+      }
     }
 
     public void setPriority(Priority priority) {
@@ -169,7 +241,12 @@ public class ViewState extends JSONObject {
     }
 
     public boolean isShowCompleted() {
-      return Boolean.valueOf(get("showCompleted").toString());
+      Object showCompleted = get("showCompleted");
+      if (showCompleted != null) {
+        return Boolean.valueOf(showCompleted.toString());
+      } else {
+        return false;
+      }
     }
 
     public void setShowCompleted(boolean bln) {

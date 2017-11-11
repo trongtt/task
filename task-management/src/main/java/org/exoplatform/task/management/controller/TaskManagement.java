@@ -59,6 +59,7 @@ import org.exoplatform.task.management.model.Paging;
 import org.exoplatform.task.management.model.TaskFilterData;
 import org.exoplatform.task.management.model.TaskFilterData.Filter;
 import org.exoplatform.task.management.model.TaskFilterData.FilterKey;
+import org.exoplatform.task.management.model.ViewState;
 import org.exoplatform.task.management.model.ViewType;
 import org.exoplatform.task.management.service.ViewStateService;
 import org.exoplatform.task.model.GroupKey;
@@ -242,7 +243,8 @@ public class TaskManagement {
     boolean advanceSearch = fd.isEnabled();
     boolean showCompleted = false;
     String keyword = "";
-    
+
+
     ListAccess<Task> listTasks = null;
     //there are cases that we return empty list of tasks with-out querying to DB
     //1. In spaces, and no space project

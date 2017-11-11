@@ -497,6 +497,17 @@ public class TaskController extends AbstractController {
   public Response listTasks(String space_group_id, Long projectId, Long labelId, String filterLabelIds, String statusId, String dueDate, String priority,
                             String assignee, Boolean showCompleted, String keyword, String groupBy, String orderBy, String filter, String viewType, Integer page, SecurityContext securityContext) throws EntityNotFoundException, UnAuthorizedOperationException {
     ViewState viewState = viewStateService.getViewState(ViewState.buildId(projectId, filter, labelId), true);
+    if (orderBy == null) {
+      orderBy = viewState.getOrderBy();
+    } else {
+      viewState.setOrderBy(orderBy);
+    }
+    if (groupBy == null) {
+      groupBy = viewState.getGroupBy();
+    } else {
+      viewState.setGroupBy(groupBy);
+    }
+
     ViewState.Filter fd = viewState.getFilter();
 
     boolean advanceSearch = fd.isEnabled();
@@ -607,8 +618,8 @@ public class TaskController extends AbstractController {
       //. Default order by CreatedDate
       if (orderBy == null || orderBy.isEmpty()) {
         orderBy = TaskUtil.CREATED_TIME;
-        order = new OrderBy.DESC(orderBy);
       }
+      order = new OrderBy.DESC(orderBy);
 
       taskQuery.setIsIncomingOf(currentUser);
       taskQuery.setOrderBy(Arrays.asList(order));
@@ -773,7 +784,6 @@ public class TaskController extends AbstractController {
       }
     }
     
-    long taskNum = countTasks;
     long incomNum = -1;
     if (projectId == ProjectUtil.INCOMING_PROJECT_ID && advanceSearch) {
       TaskQuery q = new TaskQuery();
@@ -793,7 +803,7 @@ public class TaskController extends AbstractController {
         .project(project)
         .projectStatuses(projectStatuses)
         .tasks(new ArrayList<Task>())
-        .taskNum(taskNum)
+        .taskNum(countTasks)
         .incomNum(incomNum)
         .groupTasks(groupTasks)
         .keyword(keyword == null ? "" : keyword)
