@@ -80,6 +80,8 @@ import org.exoplatform.task.util.TaskUtil.DUE;
  */
 public class TaskManagement {
 
+  public static final int MIN_NUMBER_TASK_GROUPABLE = 2;
+
   private static final Log LOG = ExoLogger.getExoLogger(TaskManagement.class);
 
   public static final String TASK_APP_SETTING_SCOPE = "Task";
@@ -142,7 +144,6 @@ public class TaskManagement {
     String errorMessage = "";
 
     TaskModel taskModel = null;
-    List<Task> tasks = null;
     Project project = null;
 
     long currProject;
@@ -182,7 +183,7 @@ public class TaskManagement {
       errorMessage = bundle.getString("popup.msg.noPermissionToViewProject");
     }
     
-    //
+    // A permalink of a task
     if (taskId != -1) {
       try {
         taskModel = TaskUtil.getTaskModel(taskId, false, bundle, username, taskService,
@@ -231,10 +232,20 @@ public class TaskManagement {
       }
     }
 
-    FilterKey filterKey = FilterKey.withProject(currProject, null);
-    Filter fd = filterData.getFilter(filterKey);
+    ViewState viewState = viewStateService.getViewState(ViewState.buildId(currProject, "", (long) -1), true);
 
+    String orderBy = TaskUtil.CREATED_TIME;
+    if (viewState.getOrderBy() != null) {
+      orderBy = viewState.getOrderBy();
+    }
+    taskQuery.setOrderBy(Arrays.asList(new OrderBy.DESC(orderBy)));
+
+    String groupBy = TaskUtil.NONE;
+    if (viewState.getGroupBy() != null) {
+      groupBy = viewState.getGroupBy();
+    }
     //
+    ViewState.Filter fd = viewState.getFilter();
     if (taskId > 0 && taskModel.getTask().isCompleted()) {
       fd.setEnabled(true);
       fd.setShowCompleted(true);
@@ -248,14 +259,14 @@ public class TaskManagement {
     ListAccess<Task> listTasks = null;
     //there are cases that we return empty list of tasks with-out querying to DB
     //1. In spaces, and no space project
+    String currentUser = securityContext.getRemoteUser();
+    TimeZone timezone = userService.getUserTimezone(currentUser);
     if ((spaceProjectIds != null  && spaceProjectIds.isEmpty())) {
       listTasks = TaskUtil.EMPTY_TASK_LIST;
     } else {
       if (advanceSearch) {
         keyword = fd.getKeyword();
         showCompleted = fd.isShowCompleted();
-        String currentUser = securityContext.getRemoteUser();
-        TimeZone timezone = userService.getUserTimezone(currentUser);
         Status status = fd.getStatus() != null ? statusService.getStatus(fd.getStatus()) : null;
         //
         TaskUtil.buildTaskQuery(taskQuery, fd.getKeyword(), fd.getLabel(), status, fd.getDue(), fd.getPriority(), fd.getAssignee(), fd.isShowCompleted(), timezone);
@@ -294,8 +305,18 @@ public class TaskManagement {
     }
     paging.setTotal(ListUtil.getSize(listTasks));
 
+    long countTasks = paging.getTotal();
+    if (countTasks < MIN_NUMBER_TASK_GROUPABLE) {
+      groupBy = TaskUtil.NONE;
+    }
+
     Map<GroupKey, List<Task>> groupTasks = new HashMap<GroupKey, List<Task>>();
-    groupTasks.put(new GroupKey("", null, 0), Arrays.asList(ListUtil.load(listTasks, paging.getStart(), paging.getNumberItemPerPage())));
+    if (countTasks >= MIN_NUMBER_TASK_GROUPABLE && groupBy != null && !groupBy.isEmpty() && !TaskUtil.NONE.equalsIgnoreCase(groupBy)) {
+      groupTasks = TaskUtil.groupTasks(Arrays.asList(ListUtil.load(listTasks, paging.getStart(), paging.getNumberItemPerPage())), groupBy, currentUser, timezone, bundle, taskService, userService);
+    }
+    if (groupTasks.isEmpty()) {
+      groupTasks.put(new GroupKey("", null, 0), Arrays.asList(ListUtil.load(listTasks, paging.getStart(), paging.getNumberItemPerPage())));
+    }
 
     UserSetting setting = userService.getUserSetting(username);
 
@@ -341,15 +362,15 @@ public class TaskManagement {
         .groups(defGroupBys)
         .project(project)
         .projectStatuses(projectStatus)
-        .tasks(tasks)
+        .tasks(null)
         .taskNum(taskNum)
         .incomNum(incomNum)
         .groupTasks(groupTasks)
         .keyword(keyword)
         .showCompleted(advanceSearch && showCompleted)
         .advanceSearch(advanceSearch)
-        .groupBy(TaskUtil.NONE)
-        .orderBy(TaskUtil.CREATED_TIME)
+        .groupBy(groupBy)
+        .orderBy(orderBy)
         .filter("")
         .projects(projects)
         .labels(labels)

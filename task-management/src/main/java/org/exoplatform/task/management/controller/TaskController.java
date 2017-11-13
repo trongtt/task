@@ -23,9 +23,6 @@ import juzu.*;
 import juzu.impl.common.Tools;
 import juzu.request.SecurityContext;
 import org.exoplatform.commons.api.settings.SettingService;
-import org.exoplatform.commons.api.settings.SettingValue;
-import org.exoplatform.commons.api.settings.data.Context;
-import org.exoplatform.commons.api.settings.data.Scope;
 import org.exoplatform.commons.juzu.ajax.Ajax;
 import org.exoplatform.commons.utils.HTMLEntityEncoder;
 import org.exoplatform.commons.utils.ListAccess;
@@ -41,8 +38,6 @@ import org.exoplatform.task.exception.ParameterEntityException;
 import org.exoplatform.task.exception.UnAuthorizedOperationException;
 import org.exoplatform.task.management.model.Paging;
 import org.exoplatform.task.management.model.TaskFilterData;
-import org.exoplatform.task.management.model.TaskFilterData.Filter;
-import org.exoplatform.task.management.model.TaskFilterData.FilterKey;
 import org.exoplatform.task.management.model.ViewState;
 import org.exoplatform.task.management.model.ViewType;
 import org.exoplatform.task.management.service.ViewStateService;
@@ -53,7 +48,6 @@ import org.exoplatform.task.model.TaskModel;
 import org.exoplatform.task.model.User;
 import org.exoplatform.task.service.*;
 import org.exoplatform.task.util.*;
-import org.exoplatform.task.util.TaskUtil.DUE;
 import org.gatein.common.text.EntityEncoder;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -68,8 +62,6 @@ import java.util.*;
  * @author <a href="mailto:tuyennt@exoplatform.com">Tuyen Nguyen The</a>.
  */
 public class TaskController extends AbstractController {
-
-  public static final int MIN_NUMBER_TASK_GROUPABLE = 2;
 
   @Inject
   TaskService taskService;
@@ -754,13 +746,13 @@ public class TaskController extends AbstractController {
     }
 
     long countTasks = paging.getTotal();
-    if (countTasks < MIN_NUMBER_TASK_GROUPABLE) {
+    if (countTasks < TaskManagement.MIN_NUMBER_TASK_GROUPABLE) {
       groupBy = TaskUtil.NONE;
     }
 
     //Map<GroupKey, ListAccess<Task>> groupTasks = TaskUtil.findTasks(taskService, taskQuery, groupBy, userTimezone, userService);
     Map<GroupKey, List<Task>> groupTasks = new HashMap<GroupKey, List<Task>>();
-    if (countTasks >= MIN_NUMBER_TASK_GROUPABLE && groupBy != null && !groupBy.isEmpty() && !TaskUtil.NONE.equalsIgnoreCase(groupBy)) {
+    if (countTasks >= TaskManagement.MIN_NUMBER_TASK_GROUPABLE && groupBy != null && !groupBy.isEmpty() && !TaskUtil.NONE.equalsIgnoreCase(groupBy)) {
       groupTasks = TaskUtil.groupTasks(Arrays.asList(ListUtil.load(listTasks, paging.getStart(), paging.getNumberItemPerPage())), groupBy, currentUser, userTimezone, bundle, taskService, userService);
     }
     if (groupTasks.isEmpty()) {

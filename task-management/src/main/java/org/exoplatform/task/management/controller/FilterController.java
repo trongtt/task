@@ -40,7 +40,6 @@ import org.exoplatform.task.domain.Project;
 import org.exoplatform.task.domain.Status;
 import org.exoplatform.task.exception.EntityNotFoundException;
 import org.exoplatform.task.management.model.TaskFilterData;
-import org.exoplatform.task.management.model.TaskFilterData.Filter;
 import org.exoplatform.task.management.model.TaskFilterData.FilterKey;
 import org.exoplatform.task.management.model.ViewState;
 import org.exoplatform.task.management.service.ViewStateService;
@@ -95,6 +94,7 @@ public class FilterController {
 
     //
     fd.setEnabled(!fd.isEnabled());
+    viewStateService.saveViewState(viewState);
 
     //
     if (fd.isEnabled()) {
@@ -108,7 +108,7 @@ public class FilterController {
       if (project != null && !project.canView(ConversationState.getCurrent().getIdentity())) {
         project = null;
       }
-      
+
       List<Status> status = Collections.emptyList();
       if (filterStatus && project != null) {      
         status = statusService.getStatuses(project.getId());

@@ -11,7 +11,6 @@ public class ViewState extends JSONObject {
 
   private String id;
   private Filter filter;
-  private String groupBy;
 
   public ViewState(String id) {
     this.id = id;
@@ -22,7 +21,12 @@ public class ViewState extends JSONObject {
     super(json);
     this.id = id;
 
-    filter = new Filter();
+    JSONObject filter = (JSONObject) get("filter");
+    if (filter != null) {
+      this.filter = new Filter(filter);
+    } else {
+      this.filter = new Filter();
+    }
   }
 
   public String getId() {
@@ -47,7 +51,7 @@ public class ViewState extends JSONObject {
   }
 
   public String getDueDate() {
-    Object filter = get("filter");
+    Object filter = get("dueDate");
     if (filter != null) {
       return filter.toString();
     } else {
@@ -57,9 +61,9 @@ public class ViewState extends JSONObject {
 
   public ViewState setDueDate(String dueDate) {
     if (dueDate != null && !dueDate.isEmpty()) {
-      put("filter", dueDate);
+      put("dueDate", dueDate);
     } else {
-      remove("filter");
+      remove("dueDate");
     }
     return this;
   }
@@ -99,7 +103,7 @@ public class ViewState extends JSONObject {
   }
 
   public void setFilter(Filter filter) {
-    put("filter", filter);
+    this.filter = filter;
   }
 
   public static String buildId(Long projectId, String filter, Long labelId) {
@@ -145,6 +149,12 @@ public class ViewState extends JSONObject {
     put("groupBy", groupBy);
   }
 
+  @Override
+  public String toString() {
+    put("filter", filter);
+    return super.toString();
+  }
+
   public static class Filter extends JSONObject {
     public Filter() {}
 
@@ -179,7 +189,12 @@ public class ViewState extends JSONObject {
     }
 
     public List<Long> getLabel() {
-      return (JSONArray) get("labels");
+      Object labels = get("labels");
+      if (labels != null) {
+        return (JSONArray) labels;
+      } else {
+        return Collections.emptyList();
+      }
     }
 
     public void setLabel(List<Long> labels) {
@@ -204,7 +219,12 @@ public class ViewState extends JSONObject {
     }
 
     public List<String> getAssignee() {
-      return null;
+      Object assignees = get("assignees");
+      if (assignees != null) {
+        return (JSONArray) assignees;
+      } else {
+        return Collections.emptyList();
+      }
     }
 
     public void setAssignee(List<String> assignees) {
@@ -212,14 +232,19 @@ public class ViewState extends JSONObject {
     }
 
     public TaskUtil.DUE getDue() {
-      return (TaskUtil.DUE) get(TaskFilterData.FILTER_NAME.DUE);
+      Object due = get("due");
+      if (due != null) {
+        return TaskUtil.DUE.valueOf(due.toString());
+      } else {
+        return null;
+      }
     }
 
     public void setDue(TaskUtil.DUE due) {
       if (due == null) {
         remove("due");
       } else {
-        put("due", due);
+        put("due", due.toString());
       }
     }
 
@@ -236,7 +261,7 @@ public class ViewState extends JSONObject {
       if (priority == null) {
         remove("priority");
       } else {
-        put("priority", priority);
+        put("priority", priority.toString());
       }
     }
 
@@ -261,7 +286,7 @@ public class ViewState extends JSONObject {
                                  Boolean showCompleted,
                                  String keyword) {
       if (filterLabelIds != null) {
-        List<Long> searchLabelIds = new LinkedList<Long>();
+        List<Long> searchLabelIds = new JSONArray();
         for (String id : filterLabelIds.split(",")) {
           if (!(id = id.trim()).isEmpty()) {
             try {
@@ -274,7 +299,7 @@ public class ViewState extends JSONObject {
       }
 
       if (assignee != null) {
-        List<String> searchAssignee = new LinkedList<String>();
+        List<String> searchAssignee = new JSONArray();
         for (String u : assignee.split(",")) {
           if (!(u = u.trim()).isEmpty()) {
             searchAssignee.add(u);
