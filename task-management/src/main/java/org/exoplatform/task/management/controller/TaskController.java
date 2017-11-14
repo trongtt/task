@@ -37,7 +37,6 @@ import org.exoplatform.task.exception.NotAllowedOperationOnEntityException;
 import org.exoplatform.task.exception.ParameterEntityException;
 import org.exoplatform.task.exception.UnAuthorizedOperationException;
 import org.exoplatform.task.management.model.Paging;
-import org.exoplatform.task.management.model.TaskFilterData;
 import org.exoplatform.task.management.model.ViewState;
 import org.exoplatform.task.management.model.ViewType;
 import org.exoplatform.task.management.service.ViewStateService;
@@ -112,9 +111,6 @@ public class TaskController extends AbstractController {
   @Path("confirmDeleteTask.gtmpl")
   org.exoplatform.task.management.templates.confirmDeleteTask confirmDeleteTask;
   
-  @Inject
-  TaskFilterData filterData;
-
   @Inject
   ViewStateService viewStateService;
 

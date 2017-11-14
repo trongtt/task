@@ -56,9 +56,6 @@ import org.exoplatform.task.domain.Task;
 import org.exoplatform.task.domain.UserSetting;
 import org.exoplatform.task.exception.EntityNotFoundException;
 import org.exoplatform.task.management.model.Paging;
-import org.exoplatform.task.management.model.TaskFilterData;
-import org.exoplatform.task.management.model.TaskFilterData.Filter;
-import org.exoplatform.task.management.model.TaskFilterData.FilterKey;
 import org.exoplatform.task.management.model.ViewState;
 import org.exoplatform.task.management.model.ViewType;
 import org.exoplatform.task.management.service.ViewStateService;
@@ -117,9 +114,6 @@ public class TaskManagement {
   @Inject
   NavigationState navState;
   
-  @Inject
-  TaskFilterData filterData;
-
   @Inject
   ViewStateService viewStateService;
 
@@ -518,11 +512,8 @@ public class TaskManagement {
       taskQuery.setOrderBy(Arrays.asList(order));
     }
 
-    FilterKey filterKey = FilterKey.withProject(projectId, filter == null || filter.isEmpty() ? null : DUE.valueOf(filter.toUpperCase()));
-    if (labelId != null && labelId != -1L) {
-      filterKey = FilterKey.withLabel(labelId);
-    }
-    Filter fd = filterData.getFilter(filterKey);
+    ViewState viewState = viewStateService.getViewState(ViewState.buildId(projectId, filter == null || filter.isEmpty() ? null : filter.toUpperCase(), labelId), true);
+    ViewState.Filter fd = viewState.getFilter();
     boolean advanceSearch = fd.isEnabled();
     boolean showCompleted = false;
     String keyword = "";
