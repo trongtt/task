@@ -31,7 +31,7 @@ public class ViewState extends JSONObject {
 
   public String getId() {
     if (id == null) {
-      id = buildId(getProjectId(), getDueDate(), getLabelId());
+      id = buildId(getProjectId(), getLabelId(), getDueDate());
     }
     return id;
   }
@@ -106,16 +106,15 @@ public class ViewState extends JSONObject {
     this.filter = filter;
   }
 
-  public static String buildId(Long projectId, String filter, Long labelId) {
-    StringBuilder sBuilder = new StringBuilder("p#").append(projectId);
+  public static String buildId(Long projectId, Long labelId, String filter) {
+    StringBuilder sBuilder = new StringBuilder("list@").append(projectId);
 
-    if (filter != null) {
-      sBuilder.append(".f#").append(filter);
+    sBuilder.append("@").append(labelId);
+
+    if (filter != null && !filter.isEmpty()) {
+      sBuilder.append("@").append(filter);
     }
 
-    if (labelId != null) {
-      sBuilder.append(".l#").append(labelId);
-    }
     return sBuilder.toString();
   }
 

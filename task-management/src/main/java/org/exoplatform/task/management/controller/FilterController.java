@@ -46,7 +46,6 @@ import org.exoplatform.task.service.StatusService;
 import org.exoplatform.task.service.TaskService;
 import org.exoplatform.task.service.UserService;
 import org.exoplatform.task.util.ProjectUtil;
-import org.exoplatform.task.util.TaskUtil.DUE;
 import org.json.JSONException;
 
 public class FilterController {
@@ -80,7 +79,7 @@ public class FilterController {
   @MimeType.HTML
   public Response toggleFilter(Long projectId, Long labelId, String filter, SecurityContext securityContext) throws JSONException, EntityNotFoundException {
 
-    ViewState viewState = viewStateService.getViewState(ViewState.buildId(projectId, filter, labelId), true);
+    ViewState viewState = viewStateService.getViewState(ViewState.buildId(projectId, labelId, filter), true);
     ViewState.Filter fd = viewState.getFilter();
 
     //

@@ -484,16 +484,17 @@ public class TaskController extends AbstractController {
   @MimeType.HTML
   public Response listTasks(String space_group_id, Long projectId, Long labelId, String filterLabelIds, String statusId, String dueDate, String priority,
                             String assignee, Boolean showCompleted, String keyword, String groupBy, String orderBy, String filter, String viewType, Integer page, SecurityContext securityContext) throws EntityNotFoundException, UnAuthorizedOperationException {
-    ViewState viewState = viewStateService.getViewState(ViewState.buildId(projectId, filter, labelId), true);
+    String listId = ViewState.buildId(projectId, labelId, filter);
+    ViewState viewState = viewStateService.getViewState(listId, true);
     if (orderBy == null) {
-      orderBy = viewState.getOrderBy();
+      orderBy = viewStateService.getOrderBy(listId);
     } else {
-      viewState.setOrderBy(orderBy);
+      viewStateService.setOrderBy(listId, orderBy);
     }
     if (groupBy == null) {
-      groupBy = viewState.getGroupBy();
+      groupBy = viewStateService.getGroupBy(listId);
     } else {
-      viewState.setGroupBy(groupBy);
+      viewStateService.setGroupBy(listId, groupBy);
     }
 
     ViewState.Filter fd = viewState.getFilter();

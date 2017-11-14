@@ -70,7 +70,6 @@ import org.exoplatform.task.service.UserService;
 import org.exoplatform.task.util.ListUtil;
 import org.exoplatform.task.util.ProjectUtil;
 import org.exoplatform.task.util.TaskUtil;
-import org.exoplatform.task.util.TaskUtil.DUE;
 
 /**
  * @author <a href="mailto:tuyennt@exoplatform.com">Tuyen Nguyen The</a>.
@@ -226,17 +225,18 @@ public class TaskManagement {
       }
     }
 
-    ViewState viewState = viewStateService.getViewState(ViewState.buildId(currProject, "", (long) -1), true);
+    String listId = ViewState.buildId(currProject, (long) -1, "");
+    ViewState viewState = viewStateService.getViewState(listId, true);
 
-    String orderBy = TaskUtil.CREATED_TIME;
-    if (viewState.getOrderBy() != null) {
-      orderBy = viewState.getOrderBy();
+    String orderBy = viewStateService.getOrderBy(listId);
+    if (orderBy == null) {
+      orderBy = TaskUtil.CREATED_TIME;
     }
     taskQuery.setOrderBy(Arrays.asList(new OrderBy.DESC(orderBy)));
 
-    String groupBy = TaskUtil.NONE;
-    if (viewState.getGroupBy() != null) {
-      groupBy = viewState.getGroupBy();
+    String groupBy =  viewStateService.getGroupBy(listId);
+    if (groupBy == null) {
+      groupBy = TaskUtil.NONE;
     }
     //
     ViewState.Filter fd = viewState.getFilter();
@@ -332,7 +332,7 @@ public class TaskManagement {
 
     List<Status> projectStatus = new ArrayList<Status>();
     Map<Long, Integer> numberTasks = new HashMap<Long, Integer>();
-    ViewType viewType = viewStateService.getViewType(username, currProject);
+    ViewType viewType = viewState.getViewType();
     if (ViewType.BOARD == viewType && currProject > 0) {
       projectStatus = statusService.getStatuses(currProject);
       for(List<Task> list : groupTasks.values()) {
@@ -512,7 +512,7 @@ public class TaskManagement {
       taskQuery.setOrderBy(Arrays.asList(order));
     }
 
-    ViewState viewState = viewStateService.getViewState(ViewState.buildId(projectId, filter == null || filter.isEmpty() ? null : filter.toUpperCase(), labelId), true);
+    ViewState viewState = viewStateService.getViewState(ViewState.buildId(projectId, labelId, filter == null || filter.isEmpty() ? null : filter.toUpperCase()), true);
     ViewState.Filter fd = viewState.getFilter();
     boolean advanceSearch = fd.isEnabled();
     boolean showCompleted = false;

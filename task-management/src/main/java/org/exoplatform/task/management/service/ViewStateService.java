@@ -51,6 +51,30 @@ public class ViewStateService {
     return ViewType.LIST;
   }
 
+  public String getOrderBy(String listId) {
+    SettingValue<String> value = (SettingValue<String>) settingService.get(Context.USER, TASK_APP_SCOPE, listId + ".orderBy");
+    if (value != null) {
+      return value.getValue();
+    }
+    return null;
+  }
+
+  public void setOrderBy(String listId, String orderBy) {
+    settingService.set(Context.USER, TASK_APP_SCOPE, listId + ".orderBy", SettingValue.create(orderBy));
+  }
+
+  public String getGroupBy(String listId) {
+    SettingValue<String> value = (SettingValue<String>) settingService.get(Context.USER, TASK_APP_SCOPE, listId + ".groupBy");
+    if (value != null) {
+      return value.getValue();
+    }
+    return null;
+  }
+
+  public void setGroupBy(String listId, String groupBy) {
+    settingService.set(Context.USER, TASK_APP_SCOPE, listId + ".groupBy", SettingValue.create(groupBy));
+  }
+
   public void saveViewType(String username, long projectId, ViewType viewType) {
     if (projectId > 0) {
       //Don't need to save if projectId <= 0, in that case the viewType is always LIST
@@ -68,7 +92,11 @@ public class ViewStateService {
         JSONObject json = (JSONObject)parser.parse(value.getValue());
         state = new ViewState(viewStateId, json);
       } else if (created) {
+        // Migrate data from
+        ViewType viewType = getViewType(null, (long) -1);
+
         state = ViewState.createDefaultViewState(viewStateId);
+        state.setViewType(viewType);
       }
 
       return state;
