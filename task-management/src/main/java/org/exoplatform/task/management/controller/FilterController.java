@@ -79,16 +79,15 @@ public class FilterController {
   @MimeType.HTML
   public Response toggleFilter(Long projectId, Long labelId, String filter, SecurityContext securityContext) throws JSONException, EntityNotFoundException {
 
-    ViewState viewState = viewStateService.getViewState(ViewState.buildId(projectId, labelId, filter), true);
-    ViewState.Filter fd = viewState.getFilter();
+    String listId = ViewState.buildId(projectId, labelId, filter);
+    ViewState.Filter fd = viewStateService.getFilter(listId);
 
     //
     fd.setEnabled(!fd.isEnabled());
-    viewStateService.saveViewState(viewState);
+    viewStateService.saveFilter(fd);
 
     //
     if (fd.isEnabled()) {
-      
       //don't allow to filter label when user already select specific label
       boolean filterLabel = labelId == null || labelId <= 0;
       

@@ -25,9 +25,6 @@ import org.exoplatform.commons.api.settings.data.Context;
 import org.exoplatform.commons.api.settings.data.Scope;
 import org.exoplatform.task.management.model.ViewState;
 import org.exoplatform.task.management.model.ViewType;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import javax.inject.Inject;
 
@@ -41,14 +38,16 @@ public class ViewStateService {
     this.settingService = settingService;
   }
 
-  public ViewType getViewType(String username, long projectId) {
-    if (projectId > 0) {
-      SettingValue<String> value = (SettingValue<String>) settingService.get(Context.USER.id(username), TASK_APP_SCOPE, buildViewTypeKey(projectId));
-      if (value != null) {
-        return ViewType.getViewType(value.getValue());
-      }
+  public ViewType getViewType(String listId) {
+    SettingValue<String> value = (SettingValue<String>) settingService.get(Context.USER, TASK_APP_SCOPE, listId + ".viewType");
+    if (value != null) {
+      return ViewType.valueOf(value.getValue());
     }
     return ViewType.LIST;
+  }
+
+  public void setViewType(String listId, ViewType viewType) {
+    settingService.set(Context.USER, TASK_APP_SCOPE, listId + ".viewType", SettingValue.create(viewType.toString()));
   }
 
   public String getOrderBy(String listId) {
@@ -75,44 +74,43 @@ public class ViewStateService {
     settingService.set(Context.USER, TASK_APP_SCOPE, listId + ".groupBy", SettingValue.create(groupBy));
   }
 
-  public void saveViewType(String username, long projectId, ViewType viewType) {
-    if (projectId > 0) {
-      //Don't need to save if projectId <= 0, in that case the viewType is always LIST
-      SettingValue<String> value = new SettingValue<>(viewType.name());
-      settingService.set(Context.USER.id(username), TASK_APP_SCOPE, buildViewTypeKey(projectId), value);
+  public ViewState.Filter getFilter(String listId) {
+    ViewState.Filter filter = new ViewState.Filter(listId);
+
+    SettingValue<String> value = (SettingValue<String>) settingService.get(Context.USER, TASK_APP_SCOPE, listId + ".filter.enabled");
+    if (value != null) {
+      filter.setEnabled(Boolean.valueOf(value.getValue()));
     }
-  }
 
-  public ViewState getViewState(String viewStateId, boolean created) {
-    SettingValue<String> value = (SettingValue<String>) settingService.get(Context.USER, TASK_APP_SCOPE, viewStateId);
-    try {
-      ViewState state = null;
-      if (value != null) {
-        JSONParser parser = new JSONParser();
-        JSONObject json = (JSONObject)parser.parse(value.getValue());
-        state = new ViewState(viewStateId, json);
-      } else if (created) {
-        // Migrate data from
-        ViewType viewType = getViewType(null, (long) -1);
-
-        state = ViewState.createDefaultViewState(viewStateId);
-        state.setViewType(viewType);
-      }
-
-      return state;
-    } catch (ParseException e) {
-      return null;
+    value = (SettingValue<String>) settingService.get(Context.USER, TASK_APP_SCOPE, listId + ".filter.keyword");
+    if (value != null) {
+      filter.setKeyword(value.getValue());
     }
+
+    value = (SettingValue<String>) settingService.get(Context.USER, TASK_APP_SCOPE, listId + ".filter.status");
+    if (value != null) {
+      filter.setStatus(Long.valueOf(value.getValue()));
+    }
+
+    value = (SettingValue<String>) settingService.get(Context.USER, TASK_APP_SCOPE, listId + ".filter.showCompleted");
+    if (value != null) {
+      filter.setShowCompleted(Boolean.valueOf(value.getValue()));
+    }
+
+    return filter;
   }
 
-  public void saveViewState(ViewState viewState) {
-    settingService.set(Context.USER, TASK_APP_SCOPE, viewState.getId(), SettingValue.create(viewState.toString()));
-  }
-
-  private String buildViewTypeKey(long projectId) {
-    return new StringBuilder("project.")
-            .append(projectId)
-            .append(".view_type")
-            .toString();
+  public void saveFilter(ViewState.Filter fd) {
+    settingService.set(Context.USER, TASK_APP_SCOPE, fd.getId() + ".filter.enabled", SettingValue.create(String.valueOf(fd.isEnabled())));
+    settingService.set(Context.USER, TASK_APP_SCOPE, fd.getId() + ".filter.keyword", SettingValue.create(fd.getKeyword()));
+    if (fd.getStatus() != null) {
+      settingService.set(Context.USER, TASK_APP_SCOPE, fd.getId() + ".filter.status", SettingValue.create(String.valueOf(fd.getStatus())));
+    } else {
+      settingService.remove(Context.USER, TASK_APP_SCOPE, fd.getId() + ".filter.status");
+    }
+    settingService.set(Context.USER, TASK_APP_SCOPE, fd.getId() + ".filter.showCompleted", SettingValue.create(String.valueOf(fd.isShowCompleted())));
+//    settingService.set(Context.USER, TASK_APP_SCOPE, listId + ".filter.due", SettingValue.create(fd.getDue().toString()));
+//    settingService.set(Context.USER, TASK_APP_SCOPE, listId + ".filter.labels", SettingValue.create(fd.getLabel().toArray().toString()));
+//    settingService.set(Context.USER, TASK_APP_SCOPE, listId + ".filter.assignees", SettingValue.create(fd.getAssignees().toArray().toString()));
   }
 }

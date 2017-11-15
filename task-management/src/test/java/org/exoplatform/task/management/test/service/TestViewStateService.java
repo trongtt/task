@@ -45,18 +45,18 @@ public class TestViewStateService {
 
   @Test
   public void testGetDefaultViewType() {
-    ViewType vType = viewStateService.getViewType("root", -1L);
+    ViewType vType = viewStateService.getViewType("list@-1@1");
     assertEquals(vType, ViewType.LIST);
 
-    vType = viewStateService.getViewType("root", 1L);
+    vType = viewStateService.getViewType("list@-1@1");
     assertEquals(vType, ViewType.LIST);
   }
 
   @Test
   public void testSaveAndGetViewType() {
-    viewStateService.saveViewType("root", 1L, ViewType.BOARD);
+    viewStateService.setViewType("list@-1@1", ViewType.BOARD);
 
-    ViewType vType = viewStateService.getViewType("root", 1L);
+    ViewType vType = viewStateService.getViewType("list@-1@1");
     assertEquals(vType, ViewType.BOARD);
   }
 

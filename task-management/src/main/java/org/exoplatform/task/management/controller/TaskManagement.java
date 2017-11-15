@@ -226,8 +226,6 @@ public class TaskManagement {
     }
 
     String listId = ViewState.buildId(currProject, (long) -1, "");
-    ViewState viewState = viewStateService.getViewState(listId, true);
-
     String orderBy = viewStateService.getOrderBy(listId);
     if (orderBy == null) {
       orderBy = TaskUtil.CREATED_TIME;
@@ -239,7 +237,7 @@ public class TaskManagement {
       groupBy = TaskUtil.NONE;
     }
     //
-    ViewState.Filter fd = viewState.getFilter();
+    ViewState.Filter fd = viewStateService.getFilter(listId);
     if (taskId > 0 && taskModel.getTask().isCompleted()) {
       fd.setEnabled(true);
       fd.setShowCompleted(true);
@@ -263,7 +261,7 @@ public class TaskManagement {
         showCompleted = fd.isShowCompleted();
         Status status = fd.getStatus() != null ? statusService.getStatus(fd.getStatus()) : null;
         //
-        TaskUtil.buildTaskQuery(taskQuery, fd.getKeyword(), fd.getLabel(), status, fd.getDue(), fd.getPriority(), fd.getAssignee(), fd.isShowCompleted(), timezone);
+        TaskUtil.buildTaskQuery(taskQuery, fd.getKeyword(), fd.getLabel(), status, fd.getDue(), fd.getPriority(), fd.getAssignees(), fd.isShowCompleted(), timezone);
       } else {
         taskQuery.setCompleted(false);
       }
@@ -332,7 +330,7 @@ public class TaskManagement {
 
     List<Status> projectStatus = new ArrayList<Status>();
     Map<Long, Integer> numberTasks = new HashMap<Long, Integer>();
-    ViewType viewType = viewState.getViewType();
+    ViewType viewType = viewStateService.getViewType(listId);
     if (ViewType.BOARD == viewType && currProject > 0) {
       projectStatus = statusService.getStatuses(currProject);
       for(List<Task> list : groupTasks.values()) {
@@ -512,8 +510,8 @@ public class TaskManagement {
       taskQuery.setOrderBy(Arrays.asList(order));
     }
 
-    ViewState viewState = viewStateService.getViewState(ViewState.buildId(projectId, labelId, filter == null || filter.isEmpty() ? null : filter.toUpperCase()), true);
-    ViewState.Filter fd = viewState.getFilter();
+    String listId = ViewState.buildId(projectId, labelId, filter == null || filter.isEmpty() ? null : filter.toUpperCase());
+    ViewState.Filter fd = viewStateService.getFilter(listId);
     boolean advanceSearch = fd.isEnabled();
     boolean showCompleted = false;
     String keyword = "";
@@ -524,7 +522,7 @@ public class TaskManagement {
       TimeZone timezone = userService.getUserTimezone(currentUser);
       Status status = fd.getStatus() != null ? statusService.getStatus(fd.getStatus()) : null;
 
-      TaskUtil.buildTaskQuery(taskQuery, fd.getKeyword(), fd.getLabel(), status, fd.getDue(), fd.getPriority(), fd.getAssignee(), fd.isShowCompleted(), timezone);
+      TaskUtil.buildTaskQuery(taskQuery, fd.getKeyword(), fd.getLabel(), status, fd.getDue(), fd.getPriority(), fd.getAssignees(), fd.isShowCompleted(), timezone);
     } else {
       taskQuery.setCompleted(false);
     }

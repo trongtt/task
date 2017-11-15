@@ -485,7 +485,6 @@ public class TaskController extends AbstractController {
   public Response listTasks(String space_group_id, Long projectId, Long labelId, String filterLabelIds, String statusId, String dueDate, String priority,
                             String assignee, Boolean showCompleted, String keyword, String groupBy, String orderBy, String filter, String viewType, Integer page, SecurityContext securityContext) throws EntityNotFoundException, UnAuthorizedOperationException {
     String listId = ViewState.buildId(projectId, labelId, filter);
-    ViewState viewState = viewStateService.getViewState(listId, true);
     if (orderBy == null) {
       orderBy = viewStateService.getOrderBy(listId);
     } else {
@@ -497,23 +496,23 @@ public class TaskController extends AbstractController {
       viewStateService.setGroupBy(listId, groupBy);
     }
 
-    ViewState.Filter fd = viewState.getFilter();
+    Identity currIdentity = ConversationState.getCurrent().getIdentity();
+    ViewType vType;
+    if (projectId <= 0 || viewType == null || viewType.isEmpty()) {
+      vType = viewStateService.getViewType(listId);
+    } else {
+      vType = ViewType.getViewType(viewType);
+      viewStateService.setViewType(listId, vType);
+    }
+    boolean isBoardView = (ViewType.BOARD == vType);
 
+    ViewState.Filter fd = viewStateService.getFilter(listId);
     boolean advanceSearch = fd.isEnabled();
     if (advanceSearch) {
       fd.updateFilterData(filterLabelIds, statusId, dueDate, priority, assignee, showCompleted, keyword);
     }
-    
-    Identity currIdentity = ConversationState.getCurrent().getIdentity();
-    ViewType vType;
-    if (projectId <= 0 || viewType == null || viewType.isEmpty()) {
-      vType = viewState.getViewType();
-    } else {
-      vType = ViewType.getViewType(viewType);
-      viewState.setViewType(vType);
-    }
 
-    boolean isBoardView = (ViewType.BOARD == vType);
+    viewStateService.saveFilter(fd);
 
     Project project = null;
     boolean noProjPermission = false;
@@ -597,7 +596,7 @@ public class TaskController extends AbstractController {
     TaskQuery taskQuery = new TaskQuery();
     if (advanceSearch) {
       Status status = fd.getStatus() != null ? statusService.getStatus(fd.getStatus()) : null;
-      TaskUtil.buildTaskQuery(taskQuery, fd.getKeyword(), fd.getLabel(), status, fd.getDue(), fd.getPriority(), fd.getAssignee(), fd.isShowCompleted(), userTimezone);
+      TaskUtil.buildTaskQuery(taskQuery, fd.getKeyword(), fd.getLabel(), status, fd.getDue(), fd.getPriority(), fd.getAssignees(), fd.isShowCompleted(), userTimezone);
     } else {
       taskQuery.setCompleted(false);
     }
@@ -780,9 +779,6 @@ public class TaskController extends AbstractController {
       q.setCompleted(false);
       incomNum = ListUtil.getSize(taskService.findTasks(q));
     }
-
-    // Save ViewState
-    viewStateService.saveViewState(viewState);
 
     return taskListView
         .with()
